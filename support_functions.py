@@ -203,11 +203,14 @@ def minmax_tt(tree, current_id, is_max):
         return min(scores)
 
 def determine_move(tree, current_id, is_max):
+    '''
+    Given a state on the board, what is the best next move? 
+    '''
     potential_moves = tree.children(current_id)
     moves = [child.identifier[-1] for child in potential_moves]
-    raw_scores = [minmax_tt(tree, child.identifier, not is_max) for child in potential_moves]
-    #print(dict(zip(moves, raw_scores)))
+    raw_scores = np.array([minmax_tt(tree, child.identifier, not is_max) for child in potential_moves])
+    # Note that when multiple max values occur, a random move with that max_value is chosen
     if is_max:
-        return moves[raw_scores.index(max(raw_scores))]
+        return moves[random.choice(np.where(raw_scores == max(raw_scores))[0])]
     else:
-        return moves[raw_scores.index(min(raw_scores))]  
+        return moves[random.choice(np.where(raw_scores == min(raw_scores))[0])] 

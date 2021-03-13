@@ -6,6 +6,7 @@ import sys
 import warnings
 warnings.filterwarnings('ignore')
 import logging
+import copy
 
 # Force the INFO messages to be printed to the console
 logging.basicConfig(level=logging.DEBUG)
@@ -50,22 +51,16 @@ for ep_idx in tqdm(range(no_episodes)):
     # Run a quick validation of 100 games to see how the agent performs now
     # This has no function in training other than seeing the growth in performance
     if val_every > 0 and ep_idx % val_every == 0:
-        player_tree.set_params(epsilon=0) # Full exploitation
+        player_validation = copy.copy(player_tree) # Make a copy of the player to not pollute the qtable
+        player_validation.set_params(epsilon=0) # Full exploitation
         rewards = pd.Series(np.zeros(100))
         for val_ep_idx in range(100):
-            move_idx = 0
             while not tictactoe.is_endstate():
-                if move_idx == 0: # First move is random
-                    tictactoe.make_move(1, random.choice(tictactoe.get_possible_next_moves()))
-                else:
-                    tictactoe = player_tree.make_move(tictactoe)
-                tictactoe = player_tree.make_computer_move(tictactoe)
-                move_idx += 1
+                tictactoe = player_validation.make_move(tictactoe)
+                tictactoe = player_validation.make_computer_move(tictactoe)
             rewards[val_ep_idx] = tictactoe.get_reward(1)
             tictactoe.reset_board()
         validation_rewards[ep_idx] = rewards.mean()
-        player_tree.set_params(epsilon=epsilon_value) # Back to training mode 
-
 
 logging.info('Saving the model...')
 if val_every > 0:
