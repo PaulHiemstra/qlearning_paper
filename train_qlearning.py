@@ -37,35 +37,14 @@ player_tree = Player(1,
 
 logging.info('Starting the training loop...')
 no_episodes = int(sys.argv[1])     # Get the number of episodes to run from the input args
-val_every = int(sys.argv[2])       # Perform a validation step or not, set to zero to ignore
-if val_every > 0:
-    validation_rewards = pd.Series(np.zeros(int(no_episodes / val_every)), 
-                                   index=range(0, no_episodes, val_every)) # Intermediate validation reward
 for ep_idx in tqdm(range(no_episodes)):
     while not tictactoe.is_endstate():
         tictactoe = player_tree.make_move(tictactoe)
         tictactoe = player_tree.make_computer_move(tictactoe)
         player_tree.update_qtable()
     tictactoe.reset_board()
-    
-    # Run a quick validation of 100 games to see how the agent performs now
-    # This has no function in training other than seeing the growth in performance
-    if val_every > 0 and ep_idx % val_every == 0:
-        player_validation = copy.copy(player_tree) # Make a copy of the player to not pollute the qtable
-        player_validation.set_params(epsilon=0) # Full exploitation
-        rewards = pd.Series(np.zeros(100))
-        for val_ep_idx in range(100):
-            while not tictactoe.is_endstate():
-                tictactoe = player_validation.make_move(tictactoe)
-                tictactoe = player_validation.make_computer_move(tictactoe)
-            rewards[val_ep_idx] = tictactoe.get_reward(1)
-            tictactoe.reset_board()
-        validation_rewards[ep_idx] = rewards.mean()
 
 logging.info('Saving the model...')
-if val_every > 0:
-    with open('validation_rewards.pkl', 'wb') as f:
-        dill.dump(validation_rewards, f)
 with open('trained_player.pkl', 'wb') as f:
     dill.dump(player_tree, f)
 
