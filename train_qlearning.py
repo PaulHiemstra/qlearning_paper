@@ -7,33 +7,32 @@ import warnings
 warnings.filterwarnings('ignore')
 import logging
 import copy
+from pathlib import Path
+import subprocess
+from datetime import datetime
+
+start = datetime.now()
 
 # Force the INFO messages to be printed to the console
 logging.basicConfig(level=logging.DEBUG)
+
+logging.info('Checking if pkl files are generated...')
+if not Path('tree_tactoe_3x3.pkl').exists():
+    subprocess.call('generate_tree.py')
+else:
+    logging.info('tree_tactoe_3x3.pkl found...')
 
 logging.info('Loading tree...')
 with open('tree_tactoe_3x3.pkl', 'rb') as f:
     tree = dill.load(f)
 
-logging.info('Precomputing best moves...')
-all_states = []
-for length in range(1,9):
-    tree_states = [''.join(state) for state in list(itertools.permutations(['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i'], r=length))]
-    all_states.extend(tree_states)
-
-for state in tqdm(all_states):
-    try:
-        move = determine_move(tree, state, False) 
-    except:
-        pass 
+logging.info('Precomputing tree moves...')
+precompute_tree_moves(tree)
 
 tictactoe = Tictoe(3)
-epsilon_value = 0.1
-player_tree = Player(1,
-                      tree, 
-                      alpha = 0.01,
-                      gamma = 0.8,
-                      epsilon = epsilon_value)
+player_tree = Player(1, tree, alpha = 0.01,
+                              gamma = 0.8,
+                              epsilon = 0.1) 
 
 logging.info('Starting the training loop...')
 no_episodes = int(sys.argv[1])     # Get the number of episodes to run from the input args
@@ -49,4 +48,4 @@ with open('trained_player.pkl', 'wb') as f:
     dill.dump(player_tree, f)
 
 logging.info('Training finished...')
-logging.info('done...')
+logging.info('done (%s)...' % (datetime.now() - start))

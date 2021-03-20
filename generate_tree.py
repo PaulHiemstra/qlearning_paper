@@ -3,6 +3,8 @@ import copy
 import dill # Alternative to pickle
 from treelib import Node, Tree
 
+logging.basicConfig(level=logging.DEBUG)
+
 class Tictoe:
     def __init__(self, size):
         self.size = size
@@ -52,11 +54,14 @@ def add_options_to_node(tree, node, tt_data, player, remaining_options):
                                 flip_player[player], remove_value_list(remaining_options, option))
     return None
 
+logging.info('Building the tree...')
 TicToe_state = Tictoe(3)
 TicToe_3x3 = Tree()
 TicToe_3x3.create_node("root", "root")
 add_options_to_node(TicToe_3x3, TicToe_3x3["root"], 
                     TicToe_state, 1, possible_options)
 
+logging.info('Saving tree...')
 with open('tree_tactoe_3x3.pkl', 'wb') as f:
     dill.dump(TicToe_3x3, f)
+logging.info('Done!')
