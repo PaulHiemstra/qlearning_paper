@@ -16,6 +16,7 @@ start = datetime.now()
 # Force the INFO messages to be printed to the console
 logging.basicConfig(level=logging.DEBUG)
 
+# Loading our tree opponent from the first article
 logging.info('Checking if pkl files are generated...')
 if not Path('tree_tactoe_3x3.pkl').exists():
     subprocess.call('generate_tree.py')
@@ -26,9 +27,11 @@ logging.info('Loading tree...')
 with open('tree_tactoe_3x3.pkl', 'rb') as f:
     tree = dill.load(f)
 
+# Using memoization to speed up the tree
 logging.info('Precomputing tree moves...')
 precompute_tree_moves(tree)
 
+# Create the board and player
 tictactoe = Tictoe(3)
 player_tree = Player(1, tree, alpha = 0.01,
                               gamma = 0.8,
